@@ -3,20 +3,20 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>parent</artifactId>
-        <groupId>com.github.pcbouman-eur.test-wrapper</groupId>
+        <artifactId>student-test-tools</artifactId>
+        <groupId>com.github.pcbouman-eur.testing</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>demo</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Demo direct and indirect testing</name>
+    <name>Demo with direct and indirect testing</name>
 
     <dependencies>
         <dependency>
             <artifactId>core</artifactId>
-            <groupId>com.github.pcbouman-eur.test-wrapper</groupId>
+            <groupId>com.github.pcbouman-eur.testing</groupId>
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
@@ -36,6 +36,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${maven.compiler.version}</version>
                         <executions>
                             <execution>
                                 <id>default-testCompile</id>
