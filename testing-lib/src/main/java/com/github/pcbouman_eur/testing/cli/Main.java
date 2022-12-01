@@ -18,7 +18,7 @@ package com.github.pcbouman_eur.testing.cli;
 import picocli.CommandLine;
 
 @CommandLine.Command(description = "Testing tools for student code", name="test", mixinStandardHelpOptions = true,
-    subcommands = {TestRunner.class})
+    subcommands = {TestRunner.class, ChoicesRunner.class})
 public class Main {
 
     public static void main(String [] args) throws Exception {

@@ -18,6 +18,7 @@
         <module>soft-assert</module>
         <module>soft-assert-generate</module>
         <module>testing-lib</module>
+        <module>choices</module>
     </modules>
 
     <properties>

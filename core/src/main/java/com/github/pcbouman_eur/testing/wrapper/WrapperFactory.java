@@ -219,7 +219,7 @@ public final class WrapperFactory<I,S> {
      * @throws WrappedException if the called constructor threw a checked Exception it is wrapped and thrown
      */
     public I constructor(Object ... args) throws MissingConstructorException, WrappedException {
-        return wrapToResult(rawTypedConstructor(typeArray(args), args));
+        return typedConstructor(typeArray(args), args);
     }
 
     /**
@@ -249,7 +249,7 @@ public final class WrapperFactory<I,S> {
      * @throws Throwable any potential exception that was thrown by the constructor
      */
     public I constructorEx(Object ... args) throws MissingConstructorException, Throwable {
-        return wrapToResult(WrappedException.getOrThrow(() -> rawTypedConstructor(typeArray(args), args)));
+        return WrappedException.getOrThrow(() -> typedConstructor(typeArray(args), args));
     }
 
     /**
@@ -268,7 +268,40 @@ public final class WrapperFactory<I,S> {
         return WrappedException.getOrThrow(() -> rawTypedConstructor(typeArray(args), args));
     }
 
-    private S rawTypedConstructor(Class<?>[] argumentTypes, Object... args) {
+    /**
+     * Calls a constructor on the student class S and wraps the resulting object in a wrapper object
+     * which implements interface I. The types of the arguments of the constructor should be passed explicitly.
+     *
+     * Providing the types is necessary if null-arguments are passed which can not be used to determine a type.
+     *
+     * Should be used in tests to construct objects rather than calling the constructor of the student class directly.
+     *
+     * @param argumentTypes the types of the arguments so the precise matching constructor can be found
+     * @param args the arguments to pass into the constructor
+     * @return a wrapper of type I around an object that was created by a constructor of the student class S
+     * @throws MissingConstructorException if student class S has no constructor that matches the arguments
+     * @throws WrappedException if the called constructor threw a checked Exception it is wrapped and thrown
+     */
+    public I typedConstructor(Class<?>[] argumentTypes, Object... args) throws MissingConstructorException, WrappedException {
+        return wrapToResult(rawTypedConstructor(argumentTypes, args));
+    }
+
+    /**
+     * Calls a constructor on the student class S and return the resulting object
+     * If the constructor does not exist, a MissingConstructorException is thrown
+     *
+     * Providing the types is necessary if null-arguments are passed which can not be used to determine a type.
+     *
+     * Can produce unwrapped checked exceptions, and should probably be only be used to test if the student correctly
+     * throws checked exceptions.
+     *
+     * @param args the arguments to pass into the constructor
+     * @return a newly created object of the student class S
+     * @throws MissingConstructorException if student class S has no constructor that matches the arguments
+     * @throws WrappedException if the called constructor threw a checked Exception it is wrapped and thrown
+     */
+
+    public S rawTypedConstructor(Class<?>[] argumentTypes, Object... args) throws MissingConstructorException, WrappedException {
         List<Class<?>> typeList = Arrays.asList(argumentTypes);
         Constructor<S> cons = constructorMap.get(typeList);
         if (cons == null) {

@@ -39,6 +39,11 @@
             <artifactId>soft-assert</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.pcbouman-eur.testing</groupId>
+            <artifactId>choices</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.platform</groupId>
