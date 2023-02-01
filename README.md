@@ -1,26 +1,5 @@
 # Student Test Tools
 
-For my teaching in the course FEB22012X Programming, I rely heavily on the
-[Codegrade](https://www.codegrade.com/) application to provide automated
-feedback to students. The main advantage of this is that students can
-keep working on their assignment and fix their mistakes. This way, students
-can learn from practice by fixing their mistakes, rather than getting one
-shot feedback at the end of their assignment work.
-
-This requires that the teacher writes software that can check and provide
-feedback for the student's code. Working with Java, it makes sense to
-make use of the popular tooling that was developed for testing Java programs,
-of which JUnit is a very popular option. However, there are a couple of drawbacks
-working with plain JUnit:
-
-* Assertions that pass successfully are discarded by standard unit testing frameworks. When providing feedback to students, it is valuable and encouraging to provide feedback on things that are correct.
-* Standard runners for JUnit tests may result in very long stacktraces of which only a small part is relevant. It can be helpful for students to only show the interesting part.
-* Standard unit tests stop as soon as an assertion fails - this makes sense as their main purpose is to warn developers something broke. However, for student it may be useful to communicate if more issues can be found with their code. Splitting each assertion up over a separate test method is not always convenient.
-* There is no natural support to define that $X$ out of $Y$ testcases should pass, with $X<Y$. If we want to allow students to choose between different parts of the assignment, this is typically needed.
-* Missing methods or mistakes in student code may result in *missing symbol* errors when compiling the test code. As a consequence, students will see compiler errors in code written by the teacher. Some will thus assume the mistake is at the side of the teacher, and not at the side of the student.
-
-In this project, I have developed some tools that can address these issues.
-
 ## Custom Test Runner and XML Writer
 
 As Codegrade uses the [junitparser](https://pypi.org/project/junitparser/) Python library to
@@ -68,6 +47,74 @@ By default, standard output and standard error are suppressed, so calls students
 make to `System.out.println()` and `System.err.println()` do not appear in the
 output. In case it is desireable to display this to students, the `-ao` and `-ae`
 flags can be added to the test runner command.
+
+## Choices Runner
+
+If we want to provide the option to let students choose which parts of the assignment
+to make, we typically want to run all test cases but consider the result good
+enough if at least a number of them pass.
+
+For example, in my final assigments I let students choose which extensions they want
+to implement. For a full grade, making only two assignments is sufficient. For each
+extension, the unit tests are contained in different test classes, and some of the
+extensions have two parts which are separated by test tags.
+
+The `choices` module provides a number of annotation that can be used to define a
+configuration of multiple test cases to run separately. The top level annotation
+used to define such a configuration is `ChoiceTests`, which has two attributes:
+`maximumPoints` and `choices`, where choices is a sequence of `@Choice` annotations
+define test runs from which the students can choose how many they want to implement.
+A `@Choice` annotation has a `name` attribute that is communicated to the student,
+a `steps` attribute that defines which test cases to run, and an optional `points`
+attribute. A `@TestStep` annotation has the attribute `testClasses` which is a sequence
+of `Class<?>` objects containing the tests to run in that step, and an option attribute
+`tags` which can be used to select only some test methods with particular tags.
+
+Below is an example of how I defined a choice configuration in one of my assignments:
+
+```java
+import com.github.pcbouman_eur.testing.choices.annotations.Choice;
+import com.github.pcbouman_eur.testing.choices.annotations.ChoiceTests;
+import com.github.pcbouman_eur.testing.choices.annotations.TestStep;
+
+@ChoiceTests(
+        maximumPoints = 2.0,
+        choices = {
+                @Choice(name="Extension 1 - Random Data",
+                        steps = @TestStep(testClasses = TestRandomTools.class)),
+                @Choice(name="Extension 2a - Statistics",
+                        steps = @TestStep(testClasses = TestStatistics.class, tags={"statistics"})),
+                @Choice(name="Extension 2b - Statistics",
+                        steps = @TestStep(testClasses = TestStatistics.class, tags={"linearmodel"})),
+                @Choice(name="Extension 3a - Plotting",
+                        steps = @TestStep(testClasses = TestPlotting.class, tags={"scatter"})),
+                @Choice(name="Extension 3b - Plotting",
+                        steps = @TestStep(testClasses = TestPlotting.class, tags={"histogram"})),
+                @Choice(name="Extension 4a - Excel",
+                        steps = @TestStep(testClasses = TestFileTools.class, tags={"read"})),
+                @Choice(name="Extension 4b - Excel",
+                        steps = @TestStep(testClasses = TestFileTools.class, tags={"write"})),
+        }
+)
+public class TestExtensions {
+    // The class itself can be left empty as only the annotation are used
+}
+```
+
+Note that the `points` attribute of a `@Choice` could be added to award more or less
+points for particular choices passed successfully by a student. By default, the number of points for a choice is `1`.
+If enough of test cases defined by separate `@Choice` options run correctly such that their points add up
+to at least the `maximumPoints` defined, the result of running the test will be considered successful.
+
+In order to run the configuration class as shown above, all we need to do is compile it
+together with all other test classes, and run the CLI with the `run-choices` action as follows:
+
+```shell
+java -jar $FIXTURES/testing-lib.jar run-choices TestExtensions
+```
+
+**Note:** perhaps in a future version I will consider to support JSON or YAML based configuration besides the
+annotation driven configuration.
 
 ## Stack Trace Sanitizer
 
