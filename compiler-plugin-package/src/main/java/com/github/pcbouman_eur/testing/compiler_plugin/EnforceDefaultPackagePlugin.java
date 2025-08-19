@@ -18,6 +18,8 @@ package com.github.pcbouman_eur.testing.compiler_plugin;
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
 
+import javax.tools.Diagnostic;
+
 public class EnforceDefaultPackagePlugin implements Plugin {
 
     @Override
@@ -27,10 +29,22 @@ public class EnforceDefaultPackagePlugin implements Plugin {
 
     @Override
     public void init(JavacTask task, String... args) {
-        task.addTaskListener(new PluginTaskListener());
+        Trees trees = Trees.instance(task);
+        task.addTaskListener(new PluginTaskListener(trees));
     }
 
     private static class PluginTaskListener implements TaskListener {
+        private final Trees trees;
+
+        PluginTaskListener(Trees trees) {
+            this.trees = trees;
+        }
+
+        private static String prepareMessage(String unitName, String packageName) {
+            return "The source file '"+unitName+"' is declared with the package '"+packageName+"'.\n"+
+                    "You should not use custom packages in this assignment." +
+                            " Make sure your code is in the default package.";
+        }
 
         @Override
         public void finished(TaskEvent e) {
@@ -40,7 +54,13 @@ public class EnforceDefaultPackagePlugin implements Plugin {
             CompilationUnitTree unit = e.getCompilationUnit();
             ExpressionTree pkgName = unit.getPackageName();
             if (pkgName != null) {
-                throw new PackageDetectedException(pkgName.toString(), unit.getSourceFile().getName());
+                String message = prepareMessage(unit.getSourceFile().getName(), pkgName.toString());
+                trees.printMessage(
+                        Diagnostic.Kind.ERROR,
+                        message,
+                        pkgName,
+                        unit
+                );
             }
         }
     }

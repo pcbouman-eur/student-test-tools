@@ -13,19 +13,18 @@ package com.github.pcbouman_eur.testing.compiler_plugin.test;/* Copyright 2022 P
    limitations under the License.
 */
 
-import com.github.pcbouman_eur.testing.compiler_plugin.PackageDetectedException;
 import org.junit.jupiter.api.Test;
 
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
+import javax.tools.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestEnforceDefaultPackagePlugin {
 
@@ -36,19 +35,19 @@ public class TestEnforceDefaultPackagePlugin {
             List<String> options = Collections.singletonList("-Xplugin:EnforceDefaultPackage");
             List<JavaFileObject> units = Collections.singletonList(new StringSourceCode("test.pkg.MyClass",
                     "package test.pkg;\nclass MyClass{ }"));
-            JavaCompiler.CompilationTask task = cmp.getTask(null, fileManager, null, options, null, units);
+            DiagnosticCollector<JavaFileObject> diag = new DiagnosticCollector<>();
+            JavaCompiler.CompilationTask task = cmp.getTask(null, fileManager, diag, options, null, units);
             try {
                 task.call();
+                assertEquals(1,diag.getDiagnostics().size(), "One compilation error should be produced");
+                Diagnostic<? extends JavaFileObject> error = diag.getDiagnostics().get(0);
+                String msg = error.getMessage(Locale.ENGLISH);
+                assertEquals(Diagnostic.Kind.ERROR, error.getKind(), "The compilation error should have type 'Error'");
+                assertEquals("/test/pkg/MyClass.java", error.getSource().getName(), "The source should be MyClass.java");
+                assertTrue(msg.contains("test.pkg"), "The package 'test.pkg' should occur in the error");
             }
             catch (RuntimeException ex) {
-                assertNotNull(ex.getCause(), "The RuntimeException thrown is expected to have a cause");
-                assertEquals(PackageDetectedException.class, ex.getCause().getClass(),
-                        "A PackageDetectedException should be thrown if a package is declared");
-                PackageDetectedException pkgEx = (PackageDetectedException) ex.getCause();
-                assertEquals("test.pkg", pkgEx.getPackageName(),
-                        "Exception contains correct package name");
-                assertEquals("/test/pkg/MyClass.java", pkgEx.getUnitName(),
-                        "Exception contains correct compilation unit name");
+                fail("The compilation should not result in an exception");
             }
         }
     }
