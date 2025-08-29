@@ -7,18 +7,19 @@
     <groupId>com.github.pcbouman-eur.testing</groupId>
     <artifactId>student-test-tools</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.9.0</version>
     <name>Testing Wrapper for Testing Student Code</name>
 
     <modules>
-        <module>core</module>
+        <module>wrapper</module>
         <module>demo</module>
         <module>sanitize</module>
-        <module>compiler-plugin-package</module>
+        <module>compilation</module>
         <module>soft-assert</module>
         <module>soft-assert-generate</module>
         <module>testing-lib</module>
         <module>choices</module>
+        <module>pmd-from-checkstyle</module>
     </modules>
 
     <properties>
@@ -30,16 +31,20 @@
         <!-- Dependency versions -->
         <commons.lang.version>3.12.0</commons.lang.version>
         <junit.version>5.9.0</junit.version>
-        <maven.plugin.api.version>3.8.6</maven.plugin.api.version>
-        <maven.plugin.annotations.version>3.6.4</maven.plugin.annotations.version>
+        <checkstyle.version>10.12.3</checkstyle.version>
+        <pmd.version>7.2.0</pmd.version>
+        <maven.resolver.version>2.0.10</maven.resolver.version>
+        <maven.plugin.api.version>3.9.5</maven.plugin.api.version>
+        <maven.plugin.plugin.version>3.9.0</maven.plugin.plugin.version>
+        <maven.plugin.annotations.version>3.9.0</maven.plugin.annotations.version>
         <maven.project.version>2.2.1</maven.project.version>
         <slf4j.version>2.0.3</slf4j.version>
 
         <!-- Plugin versions -->
-        <maven.surefire.version>3.0.0-M7</maven.surefire.version>
+        <maven.surefire.version>3.1.2</maven.surefire.version>
         <maven.javadoc.version>3.4.1</maven.javadoc.version>
-        <maven.assembly.version>3.4.2</maven.assembly.version>
-        <maven.compiler.version>3.10.1</maven.compiler.version>
+        <maven.assembly.version>3.6.0</maven.assembly.version>
+        <maven.compiler.version>3.11.0</maven.compiler.version>
 
     </properties>
 

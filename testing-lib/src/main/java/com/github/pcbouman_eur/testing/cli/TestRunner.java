@@ -15,6 +15,10 @@
 
 package com.github.pcbouman_eur.testing.cli;
 
+import com.github.pcbouman_eur.testing.cli.util.AutogradeV2JsonWriter;
+import com.github.pcbouman_eur.testing.cli.util.ClassUtils;
+import com.github.pcbouman_eur.testing.cli.util.JUnitLegacyXMLWriter;
+import com.github.pcbouman_eur.testing.cli.util.TestDataListener;
 import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.*;
@@ -26,9 +30,6 @@ import picocli.CommandLine;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -36,8 +37,6 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(name = "run", mixinStandardHelpOptions = true,
                 description = "Run selected tests and store the results in an output XML file")
 public class TestRunner implements Callable<Void> {
-
-    private static final String CODEGRADE_OUTPUT_ENV_VARIABLE = "CG_JUNIT_XML_LOCATION";
 
     @CommandLine.Option(names = {"--class", "-c"}, description = "Names of classes containing testcases to run",
         required = true)
@@ -49,7 +48,7 @@ public class TestRunner implements Callable<Void> {
             "should be loaded before running the test")
     private List<String> dependencies;
 
-    @CommandLine.Option(names = {"-o", "--output"}, description = "Name of file the output XML should be written to")
+    @CommandLine.Option(names = {"-o", "--output"}, description = "Name of file the output should be written to")
     private File output;
 
     @CommandLine.Option(names = {"-ao", "--allowOutput"}, description = "ALlows students to print to standard out")
@@ -58,25 +57,32 @@ public class TestRunner implements Callable<Void> {
     @CommandLine.Option(names = {"-ae", "--allowError"}, description = "Allows students to print to standard error")
     private boolean allowStandardError;
 
-    private boolean suppressOutputLocation = false;
+    @CommandLine.Option(names = {"-j", "--json"}, description = "Writes a AutotestV2 json file rather than XML")
+    private boolean useJson;
+
+    @CommandLine.Option(names = {"-s", "--silent"}, description = "Suppress printing process information to stdout")
+    private boolean silent;
+
+    @CommandLine.Option(names = {"-so", "--suppressOutput"},
+            description = "Suppress the output file location when printing process information " +
+                    "(only relevant when non-silent)")
+    private boolean suppressOutputLocation;
+
+    private void println(String str, PrintStream out) {
+        if (!silent) {
+            out.println(str);
+        }
+    }
 
     @Override
     public Void call() throws IOException, ParserConfigurationException, TransformerException {
 
-        if (output == null) {
-            String cgOutput = System.getenv(CODEGRADE_OUTPUT_ENV_VARIABLE);
-            if (cgOutput != null && !cgOutput.isBlank()) {
-                output = new File(cgOutput);
-                suppressOutputLocation = true;
-            }
-        }
-
         PrintStream out = System.out;
         PrintStream err = System.err;
         ByteArrayOutputStream alternativeStandardOut = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(alternativeStandardOut, true, "utf-8"));
+        System.setOut(new PrintStream(alternativeStandardOut, true, StandardCharsets.UTF_8));
         ByteArrayOutputStream alternativeStandardErr = new ByteArrayOutputStream();
-        System.setErr(new PrintStream(alternativeStandardErr, true, "utf-8"));
+        System.setErr(new PrintStream(alternativeStandardErr, true, StandardCharsets.UTF_8));
 
         ClassUtils.initClassloader();
 
@@ -93,25 +99,34 @@ public class TestRunner implements Callable<Void> {
         SummaryGeneratingListener sumListener = new SummaryGeneratingListener();
         TestDataListener listener = new TestDataListener();
         launcher.registerTestExecutionListeners(sumListener, listener);
-        out.println("Running tests");
+        println("Running tests", out);
         launcher.execute(testPlan);
-        out.println("Done running tests");
+        println("Done running tests", out);
 
-        PrintWriter pw = new PrintWriter(out);
-        sumListener.getSummary().printTo(pw);
+        if (!silent) {
+            PrintWriter pw = new PrintWriter(out);
+            sumListener.getSummary().printTo(pw);
+        }
 
         if (output == null) {
-            out.println("No output file defined");
+            err.println("No output file defined");
             return null;
         }
         if (suppressOutputLocation) {
-             out.println("Writing output XML");
+             println("Writing output file", out);
         }
         else {
-            out.println("Writing output XML to " + output);
+            println("Writing output file to " + output, out);
         }
-        JUnitLegacyXMLWriter.writeXml(output, listener);
-        out.println("Done.");
+
+        if  (!useJson) {
+            JUnitLegacyXMLWriter.writeXml(output, listener);
+        }
+        else {
+            AutogradeV2JsonWriter.write(output, listener);
+        }
+
+        println("Done.", out);
 
         if (allowStandardOut) {
             out.println();

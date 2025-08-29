@@ -13,7 +13,7 @@
    limitations under the License.
 */
 
-package com.github.pcbouman_eur.testing.cli;
+package com.github.pcbouman_eur.testing.cli.util;
 
 import com.github.pcbouman_eur.testing.soft_assert.SoftAssertExtension;
 import org.junit.platform.engine.TestExecutionResult;
@@ -182,7 +182,6 @@ public class TestDataListener implements TestExecutionListener {
         public TestIdentifier getIdentifier() {
             return identifier;
         }
-
 
         public Throwable getThrowable() {
             if (result != null) {

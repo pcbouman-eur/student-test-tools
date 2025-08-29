@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+DIR="$(dirname "$0")"
+java -cp "{{classpath}}" {{mainClass}} run --silent --output {{reportFile}} "$@"
+cg junitxml {{reportFile}}
+rm {{reportFile}}

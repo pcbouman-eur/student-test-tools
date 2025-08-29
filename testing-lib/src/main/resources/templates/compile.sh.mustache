@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+DIR="$(dirname "$0")"
+java -cp "{{classpath}}" {{mainClass}} compile -l {{lintFile}} "$@"
+cat {{lintFile}} |
+cg comments generic \
+   --origin compiler \
+   "^(?P<file>[^:]+):(?P<line>-?\d+):(?P<column>-?\d+):(?P<severity>fatal|error|warning|info):(?P<message>.*)$"
+rm {{lintFile}}

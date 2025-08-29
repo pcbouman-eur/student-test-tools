@@ -20,6 +20,7 @@ import org.opentest4j.AssertionFailedError;
 import org.opentest4j.ValueWrapper;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class SoftAssertionTextLayout {
 
@@ -61,6 +62,7 @@ public final class SoftAssertionTextLayout {
         String format = "[ %"+colWidth+"d of %"+colWidth+"d ]";
 
         StringBuilder sb = new StringBuilder();
+        sb.append("\n");
         if (data.hasSuccess()) {
             sb.append(reportMap(data.getSuccessCounts(), data.getTotalCounts(), null, "SUCCESS", format));
             sb.append("\n\n");
@@ -108,6 +110,31 @@ public final class SoftAssertionTextLayout {
         return sb.toString();
     }
 
+    public List<Throwable> getFormattedThrowables(List<? extends Throwable> failures) {
+        List<Throwable> result = new ArrayList<>();
+        List<AssertionFailedError> afes = new ArrayList<>();
+        for (Throwable t : failures) {
+            if (t instanceof  AssertionFailedError) {
+                afes.add((AssertionFailedError) t);
+            }
+            else {
+                result.add(t);
+            }
+        }
+        Map<String,List<AssertionFailedError>> failureMap =
+                afes.stream()
+                        .collect(Collectors.groupingBy(Throwable::getMessage));
+        for (Map.Entry<String,List<AssertionFailedError>> entry : failureMap.entrySet()) {
+            String key = entry.getKey();
+            List<AssertionFailedError> errors = entry.getValue();
+            if (!errors.isEmpty()) {
+                String details = getAssertionFailedErrors(entry.getValue());
+                result.add(new FormatThrowable(key + "\n" + details));
+            }
+        }
+        return result;
+    }
+
     private StringBuilder layoutExceptionHeader(Class<?> type, Throwable t) {
         StringBuilder sb = new StringBuilder();
         sb.append("*")
@@ -119,6 +146,7 @@ public final class SoftAssertionTextLayout {
         }
         return sb;
     }
+
 
     private StringBuilder reportMap(Map<String,Integer> counts, Map<String,Integer> totalCounts,
                                     Map<String,List<AssertionFailedError>> failures, String label, String format) {
@@ -136,33 +164,43 @@ public final class SoftAssertionTextLayout {
             if (failures != null && displayLimit > 0) {
                 List<AssertionFailedError> list = failures.get(msg);
                 if (list != null) {
-                    boolean truncated = false;
-                    int displayCount = 0;
-                    for (AssertionFailedError afe : list) {
-                        boolean actualAndExpected = afe.isActualDefined() && afe.isExpectedDefined();
-                        boolean shouldDisplay = displayBooleanDetails || !isBoolean(afe.getExpected());
-                        if (actualAndExpected && shouldDisplay) {
-                            if (displayCount >= displayLimit) {
-                                truncated = true;
-                                break;
-                            }
-                            String expected = valueToString(afe.getExpected());
-                            String actual = valueToString(afe.getActual());
-                            sb.append("   * Expected value: '");
-                            sb.append(expected.replace("\n", "\\n"));
-                            sb.append("'\n     Actual value:   '");
-                            sb.append(actual.replace("\n", "\\n"));
-                            sb.append("'\n");
-                            displayCount++;
-                        }
-                    }
-                    if (truncated) {
-                        sb.append("   Some failure details were omitted for reasons of brevity\n");
-                    }
+                    sb.append(getAssertionFailedErrors(list));
                 }
             }
         }
         return sb;
+    }
+
+    private String getAssertionFailedErrors(List<AssertionFailedError> list) {
+        StringBuilder sb = new StringBuilder();
+        boolean truncated = false;
+        int displayCount = 0;
+        for (AssertionFailedError afe : list) {
+            boolean actualAndExpected = afe.isActualDefined() && afe.isExpectedDefined();
+            boolean shouldDisplay = displayBooleanDetails || !isBoolean(afe.getExpected());
+            if (actualAndExpected && shouldDisplay) {
+                if (displayCount >= displayLimit) {
+                    truncated = true;
+                    break;
+                }
+                writeAssertionFailedError(afe, sb);
+                displayCount++;
+            }
+        }
+        if (truncated) {
+            sb.append("   Some failure details were omitted for reasons of brevity\n");
+        }
+        return sb.toString();
+    }
+
+    private void writeAssertionFailedError(AssertionFailedError afe, StringBuilder sb) {
+        String expected = valueToString(afe.getExpected());
+        String actual = valueToString(afe.getActual());
+        sb.append("   * Expected value: '");
+        sb.append(expected.replace("\n", "\\n"));
+        sb.append("'\n     Actual value:   '");
+        sb.append(actual.replace("\n", "\\n"));
+        sb.append("'\n");
     }
 
     private boolean isBoolean(ValueWrapper wrapper) {
@@ -187,6 +225,18 @@ public final class SoftAssertionTextLayout {
                 .append(" *\n")
                 .append("*".repeat(label.length() + 4));
         return sb;
+    }
+
+    public static class FormatThrowable extends RuntimeException {
+
+        public FormatThrowable(String message) {
+            super(message);
+        }
+
+        @Override
+        public String toString() {
+            return getMessage();
+        }
     }
 
 }

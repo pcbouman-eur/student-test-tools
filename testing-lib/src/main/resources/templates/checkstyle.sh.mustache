@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+DIR="$(dirname "$0")"
+
+# Obtain jar location for checkstyle
+CHECKSTYLE_JAR=$(cg checkstyle get-jar)
+
+# Obtain lib location for PMD
+PMD_PATH=$(command -v pmd 2>/dev/null || true)
+if [[ -z $PMD_PATH ]]; then
+   PMD_LIBS=""
+else
+   PMD_LIBS="$(dirname "$(dirname "$(readlink -f -- "$PMD_PATH")")")/lib/*"
+fi
+
+java -Dorg.slf4j.simpleLogger.defaultLogLevel=error -cp "{{classpath}}:$CHECKSTYLE_JAR:$PMD_LIBS" {{mainClass}} checkstyle --output {{reportFile}} "$@"
+cg checkstyle parse --deduction-error "$CHECKSTYLE_DEDUCTION_ERROR" --deduction-warning "$CHECKSTYLE_DEDUCTION_WARNING" --deduction-info "$CHECKSTYLE_DEDUCTION_INFO" {{reportFile}}
+rm {{reportFile}}

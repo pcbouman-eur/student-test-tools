@@ -13,7 +13,7 @@
    limitations under the License.
 */
 
-package com.github.pcbouman_eur.testing.cli;
+package com.github.pcbouman_eur.testing.cli.util;
 
 import com.github.pcbouman_eur.testing.soft_assert.SoftAssertionFailuresError;
 import org.junit.platform.engine.TestSource;

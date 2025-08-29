@@ -9,6 +9,10 @@ import java.util.stream.Collectors;
 
 public class ChoicesResults {
 
+    private static double ROUNDING_EPSILON = 1e-6;
+
+    private static final String JSON_FORMAT = "{ \"tag\" : \"points\", \"points\" : \"%d/%d\" }";
+
     private ChoiceTests tests;
     private List<ChoiceResult> results;
 
@@ -76,6 +80,23 @@ public class ChoicesResults {
             builder.append(String.format(Locale.ROOT, "%.1f", normalized));
         }
         return builder.toString();
+    }
+
+    public String getPointsJson() {
+        double sum = 0;
+
+        for (ChoiceResult result : results) {
+            double earned = result.isPass() ? result.getChoice().points() : 0d;
+            sum += earned;
+        }
+
+        int scale = tests.outputScale();
+        double points = Math.min(sum, tests.maximumPoints());
+        double max = tests.maximumPoints();
+
+        int intPoints = (int) Math.floor(Math.min(max, points/max) * scale + ROUNDING_EPSILON);
+
+        return String.format(Locale.ROOT, JSON_FORMAT, intPoints, scale);
     }
 
     private String getPointsFormat() {

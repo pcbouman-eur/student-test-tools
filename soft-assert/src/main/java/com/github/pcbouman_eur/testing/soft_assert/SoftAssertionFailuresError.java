@@ -17,13 +17,37 @@ package com.github.pcbouman_eur.testing.soft_assert;
 
 import org.opentest4j.MultipleFailuresError;
 
+import java.util.List;
+
 public class SoftAssertionFailuresError extends MultipleFailuresError {
+
+    private static String getMessage(SoftAssertionData data) {
+        int total = data.getTotalCounts().values()
+                .stream()
+                .mapToInt(Integer::intValue)
+                .sum();
+        int fails = data.getFailuresCount();
+        int exceptions = data.getExceptionCount();
+        StringBuilder sb = new StringBuilder();
+        if (exceptions > 0) {
+            sb.append(exceptions).append(" Exceptions occurred.");
+        }
+        sb.append(" ");
+        if (fails > 0) {
+            sb.append(fails).append("/").append(total).append(" failures.");
+        }
+        else {
+            sb.append(total).append(" successes.");
+        }
+        return sb.toString();
+
+    }
 
     private final SoftAssertionData data;
     private final SoftAssertionTextLayout layout;
 
     public SoftAssertionFailuresError(SoftAssertionData data, SoftAssertionTextLayout layout) {
-        super(layout.getReport(data), data.getAllErrors());
+        super(getMessage(data), data.getAllErrors());
         this.data = data;
         this.layout = layout;
     }
@@ -39,4 +63,11 @@ public class SoftAssertionFailuresError extends MultipleFailuresError {
     public String getLayoutDataString() {
         return layout.getReport(data);
     }
+
+    @Override
+    public String toString() {
+        return getMessage();
+    }
+
+
 }

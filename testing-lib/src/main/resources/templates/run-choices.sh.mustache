@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+DIR="$(dirname "$0")"
+java -cp "{{classpath}}" {{mainClass}} run-choices --points {{pointsFile}} "$@"
+cat {{pointsFile}}
+cat {{pointsFile}} >&3
+rm {{pointsFile}}

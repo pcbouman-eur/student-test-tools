@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface ChoiceTests {
     double maximumPoints();
     Choice[] choices();
+    int outputScale() default 10;
 }
