@@ -57,7 +57,10 @@ public class CheckStyle implements Callable<Integer> {
             description = "Checkstyle XML configuration file")
     private File configFile;
 
-
+    @Option(names = {"-x", "-exclude"},
+            paramLabel = "FILE",
+            description = "Files to exclude from checking (e.g. main files only used to run code)")
+    private List<File> exclude;
 
     private void getFilesToProcess(File dir, List<File> target) {
         for (File f : dir.listFiles()) {
@@ -65,7 +68,9 @@ public class CheckStyle implements Callable<Integer> {
                 getFilesToProcess(f, target);
             }
             else if (f.getName().toLowerCase().endsWith(".java")) {
-                target.add(f);
+                if (!exclude.contains(f)) {
+                    target.add(f);
+                }
             }
         }
     }
