@@ -60,6 +60,8 @@ public class Compile implements Callable<Integer> {
 
     public static final String DEFAULT_COMPILE_LOG = ".compile-log.txt";
 
+    public static final String UNCHECKED_ARG = "-Xlint:unchecked";
+
     @CommandLine.Unmatched
     List<String> compilerOptions;
 
@@ -68,6 +70,9 @@ public class Compile implements Callable<Integer> {
 
     @CommandLine.Option(names={"-se", "--suppressErr"}, description = "Suppress compiler output to standard error")
     private boolean suppressStdErr;
+
+    @CommandLine.Option(names={"-nu", "--noUnchecked"}, description = "Do not pass -Xlint:unchecked to the compiler")
+    private boolean noUnchecked;
 
     @CommandLine.Option(names={"-t", "--teacherSrc"}, description="Defines one or more sources for the teacher. " +
         "Compilation errors in teacher sources are treated differently as this suggests the student not " +
@@ -126,7 +131,14 @@ public class Compile implements Callable<Integer> {
             }
         }
 
-        List<String> options = compilerOptions != null ? compilerOptions : List.of();
+        List<String> options = new ArrayList<>();
+        // compilerOptions != null ? compilerOptions : List.of();
+        if (compilerOptions != null) {
+            options.addAll(compilerOptions);
+        }
+        if (!noUnchecked && !options.contains(UNCHECKED_ARG)) {
+            options.add(UNCHECKED_ARG);
+        }
         TeacherCompileJob job = TeacherCompileJob.forSources(provided, student, teacher);
         if (verbose) {
             System.out.println(job.getSummary());
