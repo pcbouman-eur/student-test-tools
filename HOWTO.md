@@ -7,11 +7,9 @@ This brief document gives some points on how you can use these student test tool
 To install, add the following script to the *Setup* part of your AutoTest configuration.
 
 ```bash
-EXPORT version=0.9.0
+VERSION=0.9.0
 wget --quiet "https://github.com/pcbouman-eur/student-test-tools/releases/download/v$VERSION/testing-lib-$VERSION.jar"
-
 sudo java -jar "testing-lib-$VERSION.jar" install
-
 rm "testing-lib-$VERSION.jar"
 
 ```
@@ -19,14 +17,12 @@ rm "testing-lib-$VERSION.jar"
 Sometimes, you may want to specify additional maven artifacts that should be available on the classpath.
 This can be done as follows, where the pattern `<groupId>:<artifactId>:<version>` is used to specify packages living on Maven central.
 ```bash
-EXPORT version=0.9.0
+VERSION=0.9.0
 wget --quiet "https://github.com/pcbouman-eur/student-test-tools/releases/download/v$VERSION/testing-lib-$VERSION.jar"
-
 sudo java -jar "testing-lib-$VERSION.jar" install \
  -a org.apache.commons:commons-math3:3.6.1 \
  -a org.apache.poi:poi:4.1.2 \
  -a org.apache.poi:poi-ooxml:4.1.2 \
-
 rm "testing-lib-$VERSION.jar"
 ```
 
