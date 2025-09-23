@@ -116,6 +116,10 @@ public class TeacherCompileJob {
             return teacher.contains(jfo);
         }
 
+        public boolean hasTeacherFiles() {
+            return !teacher.isEmpty();
+        }
+
     }
 
 }

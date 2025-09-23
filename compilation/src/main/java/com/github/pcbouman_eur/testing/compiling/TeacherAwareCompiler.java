@@ -82,26 +82,31 @@ public class TeacherAwareCompiler {
 
         // If phase 1 worked out okay, now run phase 2
 
-        DiagnosticCollector<JavaFileObject> phase2Diagnostics = new DiagnosticCollector<>();
-        log.append("Running phase 2 compilation task\n");
-        task = compiler.getTask(null, stdFm, phase2Diagnostics, options, null, files.getPhase2Files());
-        ok = task.call();
-        log.append(ok ? "Phase 2 compilation successful\n" : "Phase 2 compilation unsuccessful\n");
+        if (files.hasTeacherFiles()) {
+            DiagnosticCollector<JavaFileObject> phase2Diagnostics = new DiagnosticCollector<>();
+            log.append("Running phase 2 compilation task\n");
+            task = compiler.getTask(null, stdFm, phase2Diagnostics, options, null, files.getPhase2Files());
+            ok = task.call();
+            log.append(ok ? "Phase 2 compilation successful\n" : "Phase 2 compilation unsuccessful\n");
 
-        // B) If there are no errors in student classes, but there are in teacher classes,
-        //    their code does not adhere to the specification of the assignment.
-        List<Diagnostic<? extends JavaFileObject>> teacher = phase2Diagnostics.getDiagnostics();
-        log.append(String.valueOf(student.size())).append(" diagnostic messages collected during phase 2 compilation\n");
-        boolean anyErrors = teacher.stream()
-                .anyMatch(d -> files.isTeacherFile(d.getSource()) && FAILURES.contains(d.getKind()));
-        if (anyErrors) {
-            output.append(DISCLAIMER).append("\n");
-            for (Diagnostic<? extends JavaFileObject> d : teacher) {
-                if (files.isTeacherFile(d.getSource()) && FAILURES.contains(d.getKind())) {
-                    output.append(d.toString()).append("\n");
+            // B) If there are no errors in student classes, but there are in teacher classes,
+            //    their code does not adhere to the specification of the assignment.
+            List<Diagnostic<? extends JavaFileObject>> teacher = phase2Diagnostics.getDiagnostics();
+            log.append(String.valueOf(student.size())).append(" diagnostic messages collected during phase 2 compilation\n");
+            boolean anyErrors = teacher.stream()
+                    .anyMatch(d -> files.isTeacherFile(d.getSource()) && FAILURES.contains(d.getKind()));
+            if (anyErrors) {
+                output.append(DISCLAIMER).append("\n");
+                for (Diagnostic<? extends JavaFileObject> d : teacher) {
+                    if (files.isTeacherFile(d.getSource()) && FAILURES.contains(d.getKind())) {
+                        output.append(d.toString()).append("\n");
+                    }
                 }
+                return new TeacherCompileResult(false, output.toString(), log.toString(), student, files);
             }
-            return new TeacherCompileResult(false, output.toString(), log.toString(), student, files);
+        }
+        else {
+            log.append("Skipping phase 2 since no teacher source files are defined.\n");
         }
 
         return new TeacherCompileResult(ok, output.toString(), log.toString(), student, files);
