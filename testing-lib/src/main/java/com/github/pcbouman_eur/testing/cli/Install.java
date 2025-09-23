@@ -92,6 +92,10 @@ class Install implements Callable<Integer> {
             description = "The default file name to use for a linter file. (default: ${DEFAULT-VALUE})")
     private String lintFile;
 
+    @Option(names = {"--skipStyle"},
+            description = "Skip installing the CheckStyle and PMD style checkers")
+    private boolean skipStyle;
+
     @Option(names = {"-cv", "--checkstyleVersion"}, defaultValue = "10.12.3",
         description = "The checkstyle version to install if not available. (default: ${DEFAULT-VALUE})")
     private String checkstyleVersion = "10.12.3";
@@ -144,11 +148,16 @@ class Install implements Callable<Integer> {
 
             // Find / Install Checkstyle and add
             // Disabled for now
-            Optional<Path> checkStylePath = getOrInstallCheckstyle();
-            checkStylePath.ifPresent(path -> System.out.println("Checkstyle found: " + path));
+            if (!skipStyle) {
+                Optional<Path> checkStylePath = getOrInstallCheckstyle();
+                checkStylePath.ifPresent(path -> System.out.println("Checkstyle found: " + path));
+            }
 
             // Install PMD
-            boolean installPmd = installPmd();
+            boolean installPmd = false;
+            if (!skipStyle) {
+                installPmd = installPmd();
+            }
 
             List<Path> artifactPaths = installArtifacts();
 
