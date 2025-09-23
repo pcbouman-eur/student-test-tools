@@ -65,7 +65,7 @@ public class Compile implements Callable<Integer> {
     @CommandLine.Unmatched
     List<String> compilerOptions;
 
-    @CommandLine.Option(names={"-ap", "-allowPackages"}, description = "Allow package definitions in the code")
+    @CommandLine.Option(names={"-ap", "--allowPackages"}, description = "Allow package definitions in the code")
     private boolean allowPackages;
 
     @CommandLine.Option(names={"-se", "--suppressErr"}, description = "Suppress compiler output to standard error")
