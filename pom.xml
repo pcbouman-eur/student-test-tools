@@ -34,9 +34,9 @@
         <checkstyle.version>10.12.3</checkstyle.version>
         <pmd.version>7.2.0</pmd.version>
         <maven.resolver.version>2.0.10</maven.resolver.version>
-        <maven.plugin.api.version>3.9.5</maven.plugin.api.version>
-        <maven.plugin.plugin.version>3.9.0</maven.plugin.plugin.version>
-        <maven.plugin.annotations.version>3.9.0</maven.plugin.annotations.version>
+        <maven.plugin.api.version>3.9.11</maven.plugin.api.version>
+        <maven.plugin.plugin.version>3.15.1</maven.plugin.plugin.version>
+        <maven.plugin.annotations.version>3.15.1</maven.plugin.annotations.version>
         <maven.project.version>2.2.1</maven.project.version>
         <slf4j.version>2.0.3</slf4j.version>
 

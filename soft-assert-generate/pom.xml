@@ -57,8 +57,16 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>${maven.plugin.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>build-soft-assert-generate-maven-plugin</id>
+                            <goals>
+                                <goal>descriptor</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                     <configuration>
-                        <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                        <goalPrefix>soft-assert-generate</goalPrefix>
                     </configuration>
                 </plugin>
             </plugins>
