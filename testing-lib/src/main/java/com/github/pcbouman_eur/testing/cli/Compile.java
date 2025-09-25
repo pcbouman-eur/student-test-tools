@@ -105,6 +105,9 @@ public class Compile implements Callable<Integer> {
     @CommandLine.Option(names={"-v", "--verbose"}, description="Verbose compiler output")
     private boolean verbose;
 
+    @CommandLine.Option(names={"--silent"}, description="Do not print any output to standard out or standard error")
+    private boolean silent;
+
     @Override
     public Integer call() throws Exception {
         List<Path> provided = new ArrayList<>();
@@ -140,17 +143,17 @@ public class Compile implements Callable<Integer> {
             options.add(UNCHECKED_ARG);
         }
         TeacherCompileJob job = TeacherCompileJob.forSources(provided, student, teacher);
-        if (verbose) {
+        if (!silent && verbose) {
             System.out.println(job.getSummary());
         }
         TeacherAwareCompiler tac = new TeacherAwareCompiler(job, options);
         TeacherCompileResult result = tac.compile(classDir, allowPackages);
-        if (verbose) {
+        if (!silent && verbose) {
             System.out.println(result.getLog());
         }
 
         String err = result.getOutput();
-        if (!suppressStdErr && !err.isBlank()) {
+        if (!silent && !suppressStdErr && !err.isBlank()) {
                 System.err.print(err);
         }
 
