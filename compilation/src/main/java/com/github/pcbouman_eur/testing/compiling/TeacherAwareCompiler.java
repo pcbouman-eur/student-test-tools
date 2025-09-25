@@ -19,6 +19,7 @@ import javax.tools.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TeacherAwareCompiler {
 
@@ -58,6 +59,9 @@ public class TeacherAwareCompiler {
         if (!allowPackages) {
             options.add("-Xplugin:EnforceDefaultPackage");
         }
+        log.append("Compiler options used for compilation:\n");
+        log.append(options.stream().map(s -> " - " + s).collect(Collectors.joining("\n")));
+        log.append("\n\n");
 
         // 4. Create and run the task for Phase 1
         DiagnosticCollector<JavaFileObject> phase1Diagnostics = new DiagnosticCollector<>();
