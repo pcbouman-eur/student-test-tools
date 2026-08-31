@@ -49,7 +49,7 @@ class Install implements Callable<Integer> {
     public static final Set<PosixFilePermission> SCRIPT_PERMISSIONS
             = PosixFilePermissions.fromString("rwxr-xr-x");
 
-    public static final String PMD_VERSION = "7.9.0";
+    public static final String PMD_VERSION = "7.27.0";
     public static final String PMD_ZIP = "pmd-dist-"+PMD_VERSION+"-bin.zip";
     public static final String PMD_URL = "https://github.com/pmd/pmd/releases/download/pmd_releases%2F"
             + PMD_VERSION + "/" + PMD_ZIP;
