@@ -68,7 +68,7 @@ public class CheckStyle implements Callable<Integer> {
                 getFilesToProcess(f, target);
             }
             else if (f.getName().toLowerCase().endsWith(".java")) {
-                if (!exclude.contains(f)) {
+                if (exclude == null || !exclude.contains(f)) {
                     target.add(f);
                 }
             }
