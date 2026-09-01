@@ -24,12 +24,15 @@
 
     <properties>
         <!-- Project properties -->
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependency versions -->
-        <commons.lang.version>3.12.0</commons.lang.version>
+        <!-- Must stay >= the commons-lang3 version pmd-java (${pmd.version}) depends on: testing-lib
+             shades wrapper's commons-lang3 into its uber-jar, and that shaded jar sits earlier on the
+             classpath than PMD's own jars at grading time, so an older bundled commons-lang3 here shadows
+             the newer one PMD's code expects (NoSuchMethodError on org.apache.commons.lang3.EnumUtils). -->
+        <commons.lang.version>3.20.0</commons.lang.version>
         <junit.version>5.9.0</junit.version>
         <checkstyle.version>10.12.3</checkstyle.version>
         <pmd.version>7.27.0</pmd.version>

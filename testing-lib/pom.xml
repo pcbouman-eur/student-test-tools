@@ -13,8 +13,6 @@
     <name>Improved testing and feedback for student code</name>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <picocli.version>4.6.3</picocli.version>
         <jakarta.json.version>2.1.2</jakarta.json.version>
