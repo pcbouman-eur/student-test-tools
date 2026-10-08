@@ -29,6 +29,9 @@ import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.filter.DependencyFilterUtils;
+import org.eclipse.aether.util.repository.SimpleArtifactDescriptorPolicy;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -64,20 +67,36 @@ public class MavenDownloader {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
         LocalRepository localRepo = new LocalRepository(localRepoDir);
         session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+        // The model builder needs e.g. java.version to evaluate profile activation in parent POMs
+        // (such as org.apache:apache). Without it, those POMs fail to build.
+        session.setSystemProperties(System.getProperties());
+        // By default, POMs that cannot be read are silently treated as having no dependencies,
+        // which leads to missing transitive dependencies. Fail loudly instead.
+        session.setArtifactDescriptorPolicy(new SimpleArtifactDescriptorPolicy(false, false));
         return session;
     }
 
     /**
-     * Resolve an artifact and its dependencies.
+     * Resolve an artifact and its transitive (compile and runtime) dependencies.
      */
     public List<File> resolve(String gav) throws DependencyResolutionException {
-        Artifact artifact = new DefaultArtifact(gav);
+        return resolveArtifacts(List.of(gav));
+    }
 
+    /**
+     * Resolve multiple artifacts together with their transitive (compile and runtime) dependencies
+     * and return all jar files. Since all artifacts are resolved in a single request, version
+     * conflicts between their dependencies are mediated as Maven would do for a single project.
+     */
+    public List<File> resolveArtifacts(List<String> gavs) throws DependencyResolutionException {
         CollectRequest collect = new CollectRequest();
-        collect.setRoot(new Dependency(artifact, ""));
+        for (String gav : gavs) {
+            collect.addDependency(new Dependency(new DefaultArtifact(gav), JavaScopes.RUNTIME));
+        }
         collect.setRepositories(remotes);
 
-        DependencyRequest request = new DependencyRequest(collect, null);
+        DependencyRequest request = new DependencyRequest(collect,
+                DependencyFilterUtils.classpathFilter(JavaScopes.RUNTIME));
         DependencyResult result = system.resolveDependencies(session, request);
 
         List<File> files = new ArrayList<>();
@@ -85,17 +104,6 @@ public class MavenDownloader {
             files.add(ar.getArtifact().getFile());
         }
         return files;
-    }
-
-    /**
-     * Resolve multiple artifacts and return all jar files.
-     */
-    public List<File> resolveArtifacts(List<String> gavs) throws DependencyResolutionException {
-        List<File> all = new ArrayList<>();
-        for (String gav : gavs) {
-            all.addAll(resolve(gav));
-        }
-        return all;
     }
 
 }

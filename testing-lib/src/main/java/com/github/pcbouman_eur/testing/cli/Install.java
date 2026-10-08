@@ -280,14 +280,22 @@ class Install implements Callable<Integer> {
         }
         System.out.println("Installing "+artifacts.size()+" maven artifacts into local repository "+mavenDir);
         MavenDownloader mvn = new MavenDownloader(new File(mavenDir));
-        List<Path> jars = new ArrayList<>();
+        try {
+            List<Path> jars = mvn.resolveArtifacts(artifacts).stream()
+                    .map(File::toPath)
+                    .collect(Collectors.toList());
+            jars.forEach(jar -> System.out.println("Installed "+jar.getFileName()));
+            System.out.println("Installed "+artifacts.size()+" maven artifacts ("+jars.size()+" jars including dependencies)");
+            return jars;
+        }
+        catch (DependencyResolutionException ex) {
+            System.err.println("[error] Could not resolve all artifacts together. Error details: "+ex.getMessage());
+            System.err.println("[error] Falling back to resolving artifacts one by one");
+        }
+        Set<Path> jars = new LinkedHashSet<>();
         for (String artifactSpec : artifacts) {
             try {
-                List<File> files = mvn.resolve(artifactSpec);
-                for (File f : files) {
-                    jars.add(f.toPath());
-                }
-                files.forEach(file -> jars.add(file.toPath()));
+                mvn.resolve(artifactSpec).forEach(file -> jars.add(file.toPath()));
                 System.out.println("Installed artifact "+artifactSpec);
             }
             catch (DependencyResolutionException ex) {
@@ -295,7 +303,7 @@ class Install implements Callable<Integer> {
                         +"'. Error details: "+ex.getMessage());
             }
         }
-        return jars;
+        return new ArrayList<>(jars);
     }
 
     private void buildScripts(Path jar, List<Path> otherJars) throws IOException {
