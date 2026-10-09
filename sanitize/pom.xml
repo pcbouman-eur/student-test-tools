@@ -14,8 +14,6 @@
     <name>JUnit5 Extension for Sanitizing Stack Traces</name>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <dependencies>

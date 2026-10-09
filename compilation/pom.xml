@@ -11,4 +11,47 @@
 
     <artifactId>compilation</artifactId>
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>META-INF/services/com.sun.source.util.Plugin</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- EnforceDefaultPackagePlugin registers itself as a javac Plugin via
+                 META-INF/services. If that file is copied to target/classes before
+                 this module's own sources are compiled, javac's -classpath includes
+                 target/classes and eagerly tries to load the plugin via ServiceLoader
+                 before the class itself has been compiled, failing with
+                 ServiceConfigurationError. Copy the descriptor in only after compile. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-plugin-service-descriptor</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <includes>
+                                        <include>META-INF/services/com.sun.source.util.Plugin</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
